@@ -1,38 +1,35 @@
 import 'package:exhange_rates_flutter/functions/fetchrates.dart';
 import 'package:flutter/material.dart';
 
-class UsdToAny extends StatefulWidget {
+class UsdToPHP extends StatefulWidget {
   final rates;
   final Map currencies;
-  const UsdToAny({Key? key, @required this.rates, required this.currencies})
+  const UsdToPHP({Key? key, @required this.rates, required this.currencies})
       : super(key: key);
 
   @override
-  _UsdToAnyState createState() => _UsdToAnyState();
+  _UsdToPHPState createState() => _UsdToPHPState();
 }
 
-class _UsdToAnyState extends State<UsdToAny> {
+class _UsdToPHPState extends State<UsdToPHP> {
   TextEditingController usdController = TextEditingController();
   String dropdownValue = 'AUD';
-  String answer = 'Converted Currency will be shown here :)';
+  String answer = '';
 
   @override
   Widget build(BuildContext context) {
-    var w = MediaQuery.of(context).size.width;
     return Card(
       child: Container(
-          // width: w / 3,
           padding: EdgeInsets.all(20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'USD to Any Currency',
+                  'USD to PHP Currency',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
                 ),
                 SizedBox(height: 20),
-
-                //TextFields for Entering USD
                 TextFormField(
                   key: ValueKey('usd'),
                   controller: usdController,
@@ -40,9 +37,9 @@ class _UsdToAnyState extends State<UsdToAny> {
                   keyboardType: TextInputType.number,
                 ),
                 SizedBox(height: 10),
+
                 Row(
                   children: [
-                    //Future Builder for getting all currencies for dropdown list
                     Expanded(
                       child: DropdownButton<String>(
                         value: dropdownValue,
@@ -57,6 +54,14 @@ class _UsdToAnyState extends State<UsdToAny> {
                         onChanged: (String? newValue) {
                           setState(() {
                             dropdownValue = newValue!;
+                            setState(() {
+                              answer = usdController.text +
+                                  ' USD = ' +
+                                  convertToUSD(widget.rates, usdController.text,
+                                      dropdownValue) +
+                                  ' ' +
+                                  dropdownValue;
+                            });
                           });
                         },
                         items: widget.currencies.keys
@@ -73,33 +78,11 @@ class _UsdToAnyState extends State<UsdToAny> {
                     SizedBox(
                       width: 10,
                     ),
-
-                    //Convert Button
-                    Container(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            answer = usdController.text +
-                                ' USD = ' +
-                                convertusd(widget.rates, usdController.text,
-                                    dropdownValue) +
-                                ' ' +
-                                dropdownValue;
-                          });
-                        },
-                        child: Text('Convert'),
-                        style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(
-                                Theme.of(context).primaryColor)),
-                      ),
-                    ),
                     SizedBox(
                       width: 10,
                     ),
                   ],
                 ),
-
-                //Final Output
                 SizedBox(height: 10),
                 Container(child: Text(answer))
               ])),

@@ -9,10 +9,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Open Exchange App',
+        title: 'Currency Exchange',
         theme: ThemeData(
-          fontFamily: 'DMSans',
-          primaryColor: Colors.pink,
+          appBarTheme: AppBarTheme(
+              backgroundColor: Color.fromARGB(255, 38, 35, 35),
+              foregroundColor: Colors.white //here you can give the text color
+              ),
+          primaryColor: Colors.grey,
+          scaffoldBackgroundColor:Color.fromARGB(255, 38, 35, 35),
         ),
         debugShowCheckedModeBanner: false,
         home: Home());

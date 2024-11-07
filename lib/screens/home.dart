@@ -12,19 +12,41 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  //Initial Variables
-
-  late Future<RatesModel> result;
-  late Future<Map> allcurrencies;
+  // Initial Variables
+  late Future<RatesModel> rates;
+  late Future<Map> allCurrencies;
   final formkey = GlobalKey<FormState>();
 
-  //Getting RatesModel and All Currencies
+  // Getting RatesModel and All Currencies
   @override
   void initState() {
     super.initState();
     setState(() {
-      result = fetchrates();
-      allcurrencies = fetchcurrencies();
+      rates = fetchRates();
+      allCurrencies = fetchCurrencies();
+    });
+  }
+
+  int _selectedIndex = 0;
+
+  Widget _getSelectedWidget(int index, Map currencies, RatesModel rates) {
+    switch (index) {
+      case 1:
+        return UsdToPHP(
+          currencies: currencies,
+          rates: rates.rates,
+        );
+      default:
+        return AnyToAny(
+          currencies: currencies,
+          rates: rates.rates,
+        );
+    }
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
     });
   }
 
@@ -33,53 +55,67 @@ class _HomeState extends State<Home> {
     var h = MediaQuery.of(context).size.height;
     var w = MediaQuery.of(context).size.width;
     return Scaffold(
-        appBar: AppBar(title: Text('Open Exchange Flutter')),
+      backgroundColor: Color.fromARGB(255, 38, 35, 35),
+      appBar: AppBar(title: Text('Currency Converter'), ),
+      body: Container(
+        height: h,
+        width: w,
+        padding: EdgeInsets.all(10),
+        child: SingleChildScrollView(
+          child: Form(
+            key: formkey,
+            child: FutureBuilder<RatesModel>(
+              future: rates,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
-        //Future Builder for Getting Exchange Rates
-        body: Container(
-          height: h,
-          width: w,
-          padding: EdgeInsets.all(10),
-          decoration: BoxDecoration(
-              image: DecorationImage(
-                  image: AssetImage('assets/currency.jpeg'),
-                  fit: BoxFit.cover)),
-          child: SingleChildScrollView(
-            child: Form(
-              key: formkey,
-              child: FutureBuilder<RatesModel>(
-                future: result,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  return Center(
-                    child: FutureBuilder<Map>(
-                        future: allcurrencies,
-                        builder: (context, currSnapshot) {
-                          if (currSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
-                          }
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              UsdToAny(
-                                currencies: currSnapshot.data!,
-                                rates: snapshot.data!.rates,
-                              ),
-                              AnyToAny(
-                                currencies: currSnapshot.data!,
-                                rates: snapshot.data!.rates,
-                              ),
-                            ],
-                          );
-                        }),
-                  );
-                },
-              ),
+                return Center(
+                  child: FutureBuilder<Map>(
+                    future: allCurrencies,
+                    builder: (context, currSnapshot) {
+                      if (currSnapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      if (currSnapshot.hasError) {
+                        return Center(child: Text('Error: ${currSnapshot.error}'));
+                      }
+                      return _getSelectedWidget(
+                        _selectedIndex,
+                        currSnapshot.data!,
+                        snapshot.data!,
+                      );
+                    },
+                  ),
+                );
+              },
             ),
           ),
-        ));
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Color.fromARGB(255, 38, 35, 35),
+        selectedItemColor: Colors.white, // Selected label and icon color
+        unselectedItemColor: Colors.white70,
+        items: const <BottomNavigationBarItem>[
+        
+          BottomNavigationBarItem(
+            icon: Icon(Icons.currency_exchange, color: Colors.white,),
+            
+            label: 'AnyToAny', 
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.monetization_on),
+            label: 'USDToAny',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+      ),
+    );
   }
 }

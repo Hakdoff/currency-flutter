@@ -4,28 +4,36 @@ import 'package:flutter/material.dart';
 class AnyToAny extends StatefulWidget {
   final rates;
   final Map currencies;
-  const AnyToAny({Key? key, @required this.rates, required this.currencies})
+
+  const AnyToAny({Key? key, required this.rates, required this.currencies})
       : super(key: key);
 
   @override
-  _AnyToAnyState createState() => _AnyToAnyState();
+  _CurrencyConverterState createState() => _CurrencyConverterState();
 }
 
-class _AnyToAnyState extends State<AnyToAny> {
-  TextEditingController amountController = TextEditingController();
+class _CurrencyConverterState extends State<AnyToAny> {
+  final usdController = TextEditingController();
+  final phpController = TextEditingController();
+  String dropdownValue1 = 'USD';
+  String dropdownValue2 = 'PHP';
+  String answer1 = '';
+  String answer2 = '';
 
-  String dropdownValue1 = 'AUD';
-  String dropdownValue2 = 'AUD';
-  String answer = 'Converted Currency will be shown here :)';
+  @override
+  void initState() {
+    super.initState();
+    usdController.text = answer1;
+    phpController.text = answer2;
+  }
 
   @override
   Widget build(BuildContext context) {
-    var w = MediaQuery.of(context).size.width;
     return Card(
-      child: Container(
-        // width: w / 3,
-        padding: EdgeInsets.all(20),
-        child: Column(
+        child: Container(
+      // width: w / 3,
+      padding: EdgeInsets.all(20),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -34,106 +42,112 @@ class _AnyToAnyState extends State<AnyToAny> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
             ),
             SizedBox(height: 20),
-
-            //TextFields for Entering USD
-            TextFormField(
-              key: ValueKey('amount'),
-              controller: amountController,
-              decoration: InputDecoration(hintText: 'Enter Amount'),
-              keyboardType: TextInputType.number,
-            ),
             SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
-                  child: DropdownButton<String>(
-                    value: dropdownValue1,
-                    icon: const Icon(Icons.arrow_drop_down_rounded),
-                    iconSize: 24,
-                    elevation: 16,
-                    isExpanded: true,
-                    underline: Container(
-                      height: 2,
-                      color: Colors.grey.shade400,
-                    ),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        dropdownValue1 = newValue!;
-                      });
-                    },
-                    items: widget.currencies.keys
-                        .toSet()
-                        .toList()
-                        .map<DropdownMenuItem<String>>((value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        key: ValueKey('usd'),
+                        controller: usdController,
+                        decoration: InputDecoration(hintText: 'Enter Amount'),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          setState(() {
+                            answer1 = value;
+                            answer2 = convertAny(widget.rates, value,
+                                dropdownValue1, dropdownValue2);
+                            phpController.text = answer2;
+                          });
+                        },
+                      ),
+                      DropdownButton<String>(
+                        value: dropdownValue1,
+                        icon: const Icon(Icons.arrow_drop_down_rounded),
+                        iconSize: 24,
+                        elevation: 16,
+                        isExpanded: true,
+                        underline: Container(
+                          height: 2,
+                          color: Colors.grey.shade400,
+                        ),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            dropdownValue1 = newValue!;
+                            answer2 = convertAny(
+                                widget.rates,
+                                usdController.text,
+                                dropdownValue1,
+                                dropdownValue2);
+                            phpController.text = answer2;
+                          });
+                        },
+                        items: widget.currencies.keys
+                            .toSet()
+                            .toList()
+                            .map<DropdownMenuItem<String>>((value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ),
                 ),
                 Container(
                     margin: EdgeInsets.symmetric(horizontal: 20),
                     child: Text('To')),
                 Expanded(
-                  child: DropdownButton<String>(
-                    value: dropdownValue2,
-                    icon: const Icon(Icons.arrow_drop_down_rounded),
-                    iconSize: 24,
-                    elevation: 16,
-                    isExpanded: true,
-                    underline: Container(
-                      height: 2,
-                      color: Colors.grey.shade400,
+                  child: Column(children: [
+                    TextFormField(
+                      key: ValueKey('php'),
+                      controller: phpController,
+                      decoration: InputDecoration(hintText: 'Enter Amount'),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        setState(() {
+                          answer2 = value;
+                          answer1 = convertAny(widget.rates, value,
+                              dropdownValue2, dropdownValue1);
+                          usdController.text = answer1;
+                        });
+                      },
                     ),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        dropdownValue2 = newValue!;
-                      });
-                    },
-                    items: widget.currencies.keys
-                        .toSet()
-                        .toList()
-                        .map<DropdownMenuItem<String>>((value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                ),
+                    DropdownButton<String>(
+                      value: dropdownValue2,
+                      icon: const Icon(Icons.arrow_drop_down_rounded),
+                      iconSize: 24,
+                      elevation: 16,
+                      isExpanded: true,
+                      underline: Container(
+                        height: 2,
+                        color: Colors.grey.shade400,
+                      ),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          dropdownValue2 = newValue!;
+                          answer2 = convertAny(widget.rates, usdController.text,
+                              dropdownValue1, dropdownValue2);
+                          phpController.text = answer2;
+                        });
+                      },
+                      items: widget.currencies.keys
+                          .toSet()
+                          .toList()
+                          .map<DropdownMenuItem<String>>((value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    ),
+                  ]),
+                )
               ],
             ),
-
-            SizedBox(height: 10),
-            Container(
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    answer = amountController.text +
-                        ' ' +
-                        dropdownValue1 +
-                        ' ' +
-                        convertany(widget.rates, amountController.text,
-                            dropdownValue1, dropdownValue2) +
-                        ' ' +
-                        dropdownValue2;
-                  });
-                },
-                child: Text('Convert'),
-                style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(
-                        Theme.of(context).primaryColor)),
-              ),
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            SizedBox(height: 10),
-            Container(child: Text(answer))
-          ],
-        ),
-      ),
-    );
+          ]),
+    ));
   }
 }
